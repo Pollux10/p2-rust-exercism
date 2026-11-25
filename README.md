@@ -143,7 +143,7 @@ rustup component add rustfmt clippy
 Todos os comandos abaixo são executados **dentro da pasta de um projeto** (onde está o `Cargo.toml`). Se o caminho tiver espaços, use aspas:
 
 ```
-cd "C:\caminho\para\P2 - 6°\gotas de chuva"
+cd "C:\caminho\pasta\gotas de chuva"
 ```
 
 ### 3.1 Rodar os testes
