@@ -60,31 +60,31 @@ O que cada arquivo faz:
 | Arquivo | Função |
 |---|---|
 | `Cargo.toml` | Configuração do projeto: nome, versão e edição da linguagem (`2021`). Não há dependências externas. |
-| `src/lib.rs` | Raiz da biblioteca. Declara as duas abordagens e **escolhe qual delas está ativa** para os testes. |
-| `src/abordagem1.rs` | Primeira solução do exercício. |
-| `src/abordagem2.rs` | Segunda solução do exercício. |
+| `src/lib.rs` | Raiz da biblioteca. Declara as duas abordagens e **escolhe qual delas está ativa** (para os testes e para o demo). |
+| `src/abordagem1.rs` | Primeira solução do exercício, com a constante `NOME` que a identifica. |
+| `src/abordagem2.rs` | Segunda solução do exercício, com a constante `NOME` que a identifica. |
 | `tests/*.rs` | Testes de integração: usam a biblioteca de fora, como outro programa usaria. |
-| `examples/demo.rs` | Programa de demonstração que executa **as duas abordagens lado a lado** e compara os resultados. |
+| `examples/demo.rs` | Programa de demonstração: imprime **qual abordagem está ativa** e os resultados para vários casos de entrada. |
 | `target/` | Pasta criada automaticamente pelo Cargo com os arquivos compilados. Não faz parte do código-fonte. |
 
-> **Importante:** o nome dos projetos dentro do `Cargo.toml` é `raindrops` e `sublist`. Os testes importam o código por esses nomes (`use raindrops::...` e `use sublist::...`), então não os altere. O nome das *pastas* pode ser qualquer um.
+> **Importante:** o nome dos projetos dentro do `Cargo.toml` é `raindrops` e `sublist`. Os testes e o demo importam o código por esses nomes (`use raindrops::...` e `use sublist::...`), então não os altere. O nome das *pastas* pode ser qualquer um.
 
-### Como o `lib.rs` alterna entre as abordagens
+### Como o `lib.rs` escolhe a abordagem ativa
 
-As duas abordagens são sempre compiladas (`pub mod`), e uma linha `pub use` decide qual função é exportada com o nome que os testes esperam:
+As duas abordagens são sempre compiladas (`pub mod`), e uma linha `pub use` decide qual delas é exportada com o nome que os testes e o demo esperam. A linha exporta **a função e a constante `NOME`** juntas, então ao trocar de abordagem o nome mostrado pelo demo troca junto. Exemplo do Raindrops:
 
 ```rust
 pub mod abordagem1;
 pub mod abordagem2;
 
-// Abordagem 1 ativa:
-pub use abordagem1::raindrops;
+// Para testar a abordagem 1, deixe esta linha ativa:
+pub use abordagem1::{raindrops, NOME};
 
-// Para usar a abordagem 2, comente a linha acima e ative esta:
-// pub use abordagem2::raindrops;
+// Para testar a abordagem 2, comente a linha acima e ative esta:
+// pub use abordagem2::{raindrops, NOME};
 ```
 
-No projeto Sublist, o `lib.rs` também define o `enum Comparison`, usado pelas duas abordagens.
+Deixe **apenas uma** das duas linhas `pub use` sem o `//`. No projeto Sublist, o `lib.rs` também define o `enum Comparison`, usado pelas duas abordagens.
 
 ---
 
@@ -143,22 +143,12 @@ rustup component add rustfmt clippy
 Todos os comandos abaixo são executados **dentro da pasta de um projeto** (onde está o `Cargo.toml`). Se o caminho tiver espaços, use aspas:
 
 ```
-cd "C:\caminho\pasta\gotas de chuva"
+cd "C:\caminho\para\gotas de chuva"
 ```
 
-### 3.1 Rodar os testes
+### 3.1 Escolher a abordagem
 
-```
-cargo test
-```
-
-O Cargo compila o projeto e executa todos os testes. O resultado esperado termina com:
-
-```
-test result: ok. 18 passed; 0 failed; 0 ignored; ...
-```
-
-> As linhas `running 0 tests` do bloco `unittests src\lib.rs` e dos `Doc-tests` são normais. Elas aparecem porque não há testes dentro do `src/` nem na documentação. Os testes de verdade estão em `tests/`.
+Antes de rodar, abra `src/lib.rs` e deixe ativa a linha `pub use` da abordagem desejada (a outra fica comentada com `//`). Tanto o `cargo test` quanto o demo usam a abordagem escolhida ali.
 
 ### 3.2 Rodar a demonstração
 
@@ -166,32 +156,115 @@ test result: ok. 18 passed; 0 failed; 0 ignored; ...
 cargo run --example demo
 ```
 
-O programa imprime, para vários casos de entrada, o resultado das **duas abordagens** e se elas concordam (`OK`) ou não (`DIFERENTE`).
+O programa imprime **qual abordagem está ativa** e, em seguida, o resultado para vários casos de entrada. A saída é a mesma nas duas abordagens, porque ambas resolvem o mesmo problema. O que muda é a primeira linha, que identifica a abordagem.
+
+Exemplo no projeto Raindrops, com a abordagem 2 ativa:
+
+```
+Abordagem ativa: Abordagem 2 (funcional, com tabela e iteradores)
+
+n      | resultado
+------------------------------
+1      | 1
+3      | Pling
+5      | Plang
+7      | Plong
+8      | 8
+15     | PlingPlang
+21     | PlingPlong
+28     | Plong
+30     | PlingPlang
+34     | 34
+35     | PlangPlong
+105    | PlingPlangPlong
+```
+
+Exemplo no projeto Sublist, com a abordagem 1 ativa:
+
+```
+Abordagem ativa: Abordagem 1 (windows e iteradores)
+
+A = []   B = []   ->   Equal
+A = [1, 2, 3]   B = []   ->   Superlist
+A = []   B = [1, 2, 3]   ->   Sublist
+A = [1, 2, 3]   B = [1, 2, 3, 4, 5]   ->   Sublist
+A = [3, 4]   B = [1, 2, 3, 4, 5]   ->   Sublist
+A = [1, 2, 3, 4, 5]   B = [2, 3, 4]   ->   Superlist
+A = [1, 2, 4]   B = [1, 2, 3, 4, 5]   ->   Unequal
+A = [1, 2, 3]   B = [1, 3, 2]   ->   Unequal
+```
 
 > Como os projetos são bibliotecas (sem `main`), o `cargo run` sozinho não funciona. Use sempre `cargo run --example demo`.
 
-Exemplo de saída no projeto Raindrops:
+O código do demo do Raindrops (`examples/demo.rs`) é:
+
+```rust
+use raindrops::{raindrops, NOME};
+
+fn main() {
+    println!("Abordagem ativa: {}", NOME);
+    println!();
+    println!("{:<6} | {}", "n", "resultado");
+    println!("{}", "-".repeat(30));
+
+    for n in [1, 3, 5, 7, 8, 15, 21, 28, 30, 34, 35, 105] {
+        println!("{:<6} | {}", n, raindrops(n));
+    }
+}
+```
+
+E o do Sublist:
+
+```rust
+use sublist::{sublist, NOME};
+
+fn main() {
+    println!("Abordagem ativa: {}", NOME);
+    println!();
+
+    let casos: [(&[i32], &[i32]); 8] = [
+        (&[], &[]),
+        (&[1, 2, 3], &[]),
+        (&[], &[1, 2, 3]),
+        (&[1, 2, 3], &[1, 2, 3, 4, 5]),
+        (&[3, 4], &[1, 2, 3, 4, 5]),
+        (&[1, 2, 3, 4, 5], &[2, 3, 4]),
+        (&[1, 2, 4], &[1, 2, 3, 4, 5]),
+        (&[1, 2, 3], &[1, 3, 2]),
+    ];
+
+    for (a, b) in casos {
+        println!("A = {:?}   B = {:?}   ->   {:?}", a, b, sublist(a, b));
+    }
+}
+```
+
+Ambos importam do `lib.rs` apenas a função e o `NOME` da abordagem ativa. É por isso que o demo mostra uma abordagem de cada vez.
+
+### 3.3 Rodar os testes
 
 ```
-n      | abordagem 1      | abordagem 2      | iguais?
--------------------------------------------------------
-3      | Pling            | Pling            | OK
-30     | PlingPlang       | PlingPlang       | OK
-34     | 34               | 34               | OK
-105    | PlingPlangPlong  | PlingPlangPlong  | OK
+cargo test
 ```
 
-### 3.3 Alternar entre as abordagens nos testes
+O Cargo compila o projeto e executa todos os testes da abordagem ativa. O resultado esperado termina com:
 
-O `cargo test` testa a abordagem que estiver ativa no `src/lib.rs`. Para testar a outra:
+```
+test result: ok. 18 passed; 0 failed; 0 ignored; ...
+```
 
-1. Abra `src/lib.rs`.
-2. Comente a linha `pub use abordagemX::...` ativa (colocando `//` na frente) e descomente a outra.
-3. Salve o arquivo e rode `cargo test` novamente.
+> As linhas `running 0 tests` do bloco `unittests src\lib.rs` e dos `Doc-tests` são normais. Elas aparecem porque não há testes dentro do `src/` nem na documentação. Os testes de verdade estão em `tests/`.
 
-(O `cargo run --example demo` não depende dessa troca, pois sempre chama as duas abordagens diretamente.)
+### 3.4 Passo a passo para validar as quatro soluções
 
-### 3.4 Formatar e analisar o código
+Em cada projeto, repita estes passos para cada abordagem:
+
+1. Abra `src/lib.rs` e ative a linha `pub use` da abordagem (a outra fica comentada). Salve com `Ctrl+S`.
+2. Rode `cargo run --example demo` e confira a linha `Abordagem ativa: ...` e os resultados.
+3. Rode `cargo test` e confira `18 passed`.
+4. Troque a linha do `lib.rs` para a outra abordagem e repita os passos 2 e 3.
+
+### 3.5 Formatar e analisar o código
 
 ```
 cargo fmt
@@ -201,7 +274,7 @@ cargo clippy
 - `cargo fmt` formata o código no padrão oficial do Rust.
 - `cargo clippy` aponta construções não idiomáticas e possíveis melhorias.
 
-### 3.5 O que acontece ao compilar
+### 3.6 O que acontece ao compilar
 
 O Rust é uma linguagem **compilada antes da execução**: o compilador `rustc` (chamado pelo Cargo) traduz o código para um executável nativo, sem máquina virtual e sem coletor de lixo. Os comandos acima usam o perfil `dev`, que não otimiza o código e inclui informações de depuração (aparece como `unoptimized + debuginfo`). Para uma versão otimizada, usa-se `--release`.
 
@@ -232,6 +305,10 @@ Os sons se acumulam: `30` é divisível por 3 e por 5, então vira `"PlingPlang"
 ### Abordagem 1: imperativa (`src/abordagem1.rs`)
 
 ```rust
+/// Nome mostrado pelo demo para indicar qual abordagem está ativa.
+pub const NOME: &str = "Abordagem 1 (imperativa, com if e String mutável)";
+
+/// Abordagem 1: imperativa, com `if` independentes e `String` mutável.
 pub fn raindrops(n: u32) -> String {
     let mut resultado = String::new();
 
@@ -255,6 +332,7 @@ pub fn raindrops(n: u32) -> String {
 
 **Como funciona:**
 
+- `NOME` é uma constante de texto que identifica a abordagem. É usada apenas pelo demo e não afeta a lógica.
 - `let mut resultado` cria uma `String` vazia e mutável. Em Rust as variáveis são imutáveis por padrão, e o `mut` é necessário porque o texto será modificado.
 - Os três `if` são **independentes** (não são `else if`), porque mais de uma condição pode ser verdadeira ao mesmo tempo. É isso que faz o 30 receber "Pling" e "Plang".
 - `n % 3 == 0` testa se o resto da divisão é zero, ou seja, se `n` é divisível por 3.
@@ -264,6 +342,10 @@ pub fn raindrops(n: u32) -> String {
 ### Abordagem 2: funcional, orientada a dados (`src/abordagem2.rs`)
 
 ```rust
+/// Nome mostrado pelo demo para indicar qual abordagem está ativa.
+pub const NOME: &str = "Abordagem 2 (funcional, com tabela e iteradores)";
+
+/// Abordagem 2: funcional e orientada a dados (tabela + iteradores).
 const SONS: [(u32, &str); 3] = [(3, "Pling"), (5, "Plang"), (7, "Plong")];
 
 pub fn raindrops(n: u32) -> String {
@@ -336,9 +418,18 @@ pub enum Comparison {
     Superlist,
     Unequal,
 }
+
+pub mod abordagem1;
+pub mod abordagem2;
+
+// Para testar a abordagem 1, deixe esta linha ativa:
+pub use abordagem1::{sublist, NOME};
+
+// Para testar a abordagem 2, comente a linha acima e ative esta:
+// pub use abordagem2::{sublist, NOME};
 ```
 
-O resultado é um `enum` com quatro variantes. `Debug` permite imprimir o valor e `PartialEq` permite compará-lo com `==` (necessário para o `assert_eq!` dos testes). Usar um enum faz o compilador garantir que só existem esses quatro resultados.
+O resultado é um `enum` com quatro variantes. `Debug` permite imprimir o valor (usado pelo demo com `{:?}`) e `PartialEq` permite compará-lo com `==` (necessário para o `assert_eq!` dos testes). Usar um enum faz o compilador garantir que só existem esses quatro resultados.
 
 A assinatura das duas abordagens é:
 
@@ -355,6 +446,11 @@ pub fn sublist<T: PartialEq>(primeira: &[T], segunda: &[T]) -> Comparison
 ```rust
 use crate::Comparison;
 
+/// Nome mostrado pelo demo para indicar qual abordagem está ativa.
+pub const NOME: &str = "Abordagem 1 (windows e iteradores)";
+
+/// Abordagem 1: janelas deslizantes (`windows`) e iteradores,
+/// testando as duas direções.
 pub fn sublist<T: PartialEq>(primeira: &[T], segunda: &[T]) -> Comparison {
     if primeira == segunda {
         Comparison::Equal
@@ -388,6 +484,11 @@ fn contem<T: PartialEq>(maior: &[T], menor: &[T]) -> bool {
 use crate::Comparison;
 use std::cmp::Ordering;
 
+/// Nome mostrado pelo demo para indicar qual abordagem está ativa.
+pub const NOME: &str = "Abordagem 2 (comparação de tamanhos e busca manual)";
+
+/// Abordagem 2: compara os tamanhos primeiro (`match` em `Ordering`),
+/// decide a direção da busca e usa um laço manual com retorno antecipado.
 pub fn sublist<T: PartialEq>(primeira: &[T], segunda: &[T]) -> Comparison {
     match primeira.len().cmp(&segunda.len()) {
         Ordering::Equal => {
@@ -452,12 +553,14 @@ Um algoritmo como o KMP reduziria a complexidade para O(n + m), mas não era nec
 
 ## 6. Sobre os testes
 
-Cada projeto tem **18 testes** em `tests/`:
+Cada projeto tem **18 testes** em `tests/`, executados contra a abordagem ativa no `lib.rs`:
 
 - **Raindrops:** casos como `1 -> "1"`, `3 -> "Pling"`, `15 -> "PlingPlang"`, `52 -> "52"` e `105 -> "PlingPlangPlong"`. Os testes são gerados por uma macro (`macro_rules!`) que cria uma função `#[test]` para cada caso, comparando o resultado com `assert_eq!`.
 - **Sublist:** listas vazias, igualdade, sublista e superlista no início, no meio e no fim, o "falso início" (por exemplo `[1, 2, 5]` dentro de `[0, 1, 2, 3, 1, 2, 5, 6]`) e casos em que a ordem ou os dígitos mudam o resultado.
 
-> **Observação:** estes arquivos de teste foram escritos seguindo o formato e os casos do Exercism, mas **não são os arquivos oficiais** da plataforma. Para validar também com os testes oficiais, é possível colar o conteúdo de `abordagem1.rs` ou `abordagem2.rs` no editor online do Exercism e clicar em **Run Tests** (no Sublist, sem a linha `use crate::Comparison;`, pois lá o enum já vem pronto).
+A adição da constante `NOME` e a mudança do `lib.rs` para exportá-la não alteram os testes: a função continua com o mesmo nome e o mesmo comportamento.
+
+> **Observação:** estes arquivos de teste foram escritos seguindo o formato e os casos do Exercism, mas **não são os arquivos oficiais** da plataforma. Para validar também com os testes oficiais, é possível colar o conteúdo de `abordagem1.rs` ou `abordagem2.rs` no editor online do Exercism e clicar em **Run Tests**. Lá, o `NOME` e o `use crate::Comparison;` não são necessários (no Sublist, o enum já vem pronto no editor).
 
 ---
 
@@ -468,6 +571,7 @@ Cada projeto tem **18 testes** em `tests/`:
 - **Iteradores:** `windows`, `any`, `filter`, `map` e `collect` no lugar de laços com índices, onde isso deixa o código mais claro.
 - **Genéricos com restrição mínima:** apenas `T: PartialEq`.
 - **Enum e `match` exaustivo:** o compilador garante que todos os casos foram tratados.
+- **Constantes:** `const` para a tabela de sons e para o `NOME` de cada abordagem.
 - **Expressões em vez de `return`:** o último `if/else` de cada função é o valor de retorno.
 - **Sem `unwrap`:** nenhuma operação pode falhar nestes exercícios, então não é necessário `Result` nem `Option`. O tipo `Comparison` já representa todos os resultados possíveis.
 - **Formatação e análise:** código formatado com `cargo fmt` e verificado com `cargo clippy`.
@@ -491,8 +595,18 @@ O comando está sendo executado fora da pasta do projeto. Use `cd` para entrar n
 **`error: a bin target must be available for cargo run`**
 Os projetos são bibliotecas. Use `cargo run --example demo` em vez de `cargo run`.
 
+**Erro de compilação mencionando `NOME` ou `abordagem1`/`abordagem2` no demo**
+O `lib.rs` precisa exportar `NOME` junto com a função (`pub use abordagem1::{raindrops, NOME};`), e cada arquivo de abordagem precisa ter a linha `pub const NOME`. Confira também se só **uma** linha `pub use` está ativa: com as duas ativas, o compilador reclama de nomes duplicados.
+
 **Erro 4551 / "Uma política de Controle de Aplicativo bloqueou este arquivo" (Windows)**
-O Windows às vezes bloqueia por instantes executáveis recém-criados. Rode o comando novamente. Se continuar, mova o projeto para uma pasta simples (por exemplo, `C:\p2`) e execute de lá.
+Não é um erro do código: o `Finished` aparece antes da mensagem, então a compilação deu certo. O Windows bloqueia por instantes executáveis recém-criados que ele ainda não reconhece. Tente, nesta ordem:
+
+1. Rodar o mesmo comando de novo.
+2. Fechar e reabrir o terminal (ou o VS Code), entrar na pasta do projeto e rodar de novo.
+3. Rodar `cargo clean` (apaga só a pasta `target`, que o Cargo recria) e depois `cargo run --example demo`.
+4. Mover o projeto para uma pasta simples, sem acentos e sem espaços (por exemplo, `C:\p2`), e rodar de lá.
+
+Se continuar bloqueando, verifique em **Segurança do Windows > Controle de aplicativos e navegador** se o **Smart App Control** está ativo. Desativá-lo é uma decisão sua, pois depois de desligado ele só volta com a reinstalação do Windows. Em computadores administrados pela faculdade ou pelo trabalho, a política pode não poder ser alterada.
 
 **Caminho com espaços ou caracteres especiais**
 Coloque o caminho entre aspas no `cd`. Se ainda houver problemas, copie o projeto para uma pasta sem acentos e sem espaços.
