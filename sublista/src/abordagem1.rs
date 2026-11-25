@@ -1,5 +1,7 @@
 use crate::Comparison;
 
+pub const NOME: &str = "Abordagem 1 (windows e iteradores)";
+
 pub fn sublist<T: PartialEq>(primeira: &[T], segunda: &[T]) -> Comparison {
     if primeira == segunda {
         Comparison::Equal
