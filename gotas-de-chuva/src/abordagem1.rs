@@ -1,7 +1,4 @@
-/// Nome mostrado pelo demo para indicar qual abordagem está ativa.
 pub const NOME: &str = "Abordagem 1 (imperativa, com if e String mutável)";
-
-/// Abordagem 1: imperativa, com `if` independentes e `String` mutável.
 pub fn raindrops(n: u32) -> String {
     let mut resultado = String::new();
 
