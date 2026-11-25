@@ -1,6 +1,8 @@
 use crate::Comparison;
 use std::cmp::Ordering;
 
+pub const NOME: &str = "Abordagem 2 (comparação de tamanhos e busca manual)";
+
 pub fn sublist<T: PartialEq>(primeira: &[T], segunda: &[T]) -> Comparison {
     match primeira.len().cmp(&segunda.len()) {
         Ordering::Equal => {
