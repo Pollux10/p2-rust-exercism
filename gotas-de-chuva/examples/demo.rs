@@ -1,12 +1,21 @@
-use raindrops::{raindrops, NOME};
+use sublist::{sublist, NOME};
 
 fn main() {
     println!("Abordagem ativa: {}", NOME);
     println!();
-    println!("{:<6} | {}", "n", "resultado");
-    println!("{}", "-".repeat(30));
 
-    for n in [1, 3, 5, 7, 8, 15, 21, 28, 30, 34, 35, 105] {
-        println!("{:<6} | {}", n, raindrops(n));
+    let casos: [(&[i32], &[i32]); 8] = [
+        (&[], &[]),
+        (&[1, 2, 3], &[]),
+        (&[], &[1, 2, 3]),
+        (&[1, 2, 3], &[1, 2, 3, 4, 5]),
+        (&[3, 4], &[1, 2, 3, 4, 5]),
+        (&[1, 2, 3, 4, 5], &[2, 3, 4]),
+        (&[1, 2, 4], &[1, 2, 3, 4, 5]),
+        (&[1, 2, 3], &[1, 3, 2]),
+    ];
+
+    for (a, b) in casos {
+        println!("A = {:?}   B = {:?}   ->   {:?}", a, b, sublist(a, b));
     }
 }
