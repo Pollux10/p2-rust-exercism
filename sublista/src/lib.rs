@@ -9,5 +9,8 @@ pub enum Comparison {
 pub mod abordagem1;
 pub mod abordagem2;
 
-pub use abordagem1::sublist;
-//pub use abordagem2::sublist;
+// Para testar a abordagem 1, deixe esta linha ativa:
+pub use abordagem1::{sublist, NOME};
+
+// Para testar a abordagem 2, comente a linha acima e ative esta:
+//pub use abordagem2::{sublist, NOME};
