@@ -3,8 +3,8 @@
 Avaliação Prática 2 da disciplina **Linguagens e Técnicas de Programação / Técnicas de Programação**, orientada pelo professor **Bruno Gabriel**.
 
 **Dupla:**
-- Rafael [sobrenome]
-- Mahgid [sobrenome]
+- Rafael
+- Mahgid
 
 **Curso:** [Engenharia da Computação / Tecnologia em Análise e Desenvolvimento de Sistemas]
 
