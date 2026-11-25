@@ -6,7 +6,7 @@ Avaliação Prática 2 da disciplina **Linguagens e Técnicas de Programação /
 - Rafael
 - Mahgid
 
-**Curso:** [Engenharia da Computação / Tecnologia em Análise e Desenvolvimento de Sistemas]
+**Curso:** Engenharia da Computação - 6° período
 
 ## Sobre o trabalho
 
